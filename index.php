@@ -1,6 +1,61 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * STRICT CONTEXT-SWITCHING SECURITY POLICY
+ * 
+ * This security mechanism prevents Session Bleed and Back-Button Bypass exploits by enforcing
+ * strict separation between administrative and public contexts. When an admin_session is detected
+ * on the public index page, a complete session hard reset is performed to prevent privilege
+ * escalation attacks.
+ * 
+ * Session Bleed Prevention: Eliminates cross-context session contamination where admin
+ * privileges could inadvertently leak into public-facing interfaces.
+ * 
+ * Back-Button Bypass Prevention: Prevents authenticated administrators from using browser
+ * back-button navigation to access public interfaces while maintaining administrative
+ * session state, which could lead to context confusion attacks.
+ * 
+ * Security Measures Implemented:
+ * 1. Context detection for admin_session presence
+ * 2. Complete session variable unset and global clearing
+ * 3. Server-side session destruction via session_destroy()
+ * 4. Client-side cookie invalidation with expiration in past
+ * 5. Forced redirect to ensure clean guest state
+ */
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Context Check: Detect admin session attempting to access public index
+if (isset($_SESSION['admin_session'])) {
+    
+    // Session Purge: Complete Hard Reset
+    unset($_SESSION['admin_session']);  // Remove admin session variable
+    $_SESSION = [];                     // Clear all session globals
+    session_destroy();                  // Destroy server-side session data
+    
+    // Client-side Invalidation: Expire session cookie
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,  // Set expiration to past
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
+    
+    // Sanitization Redirect: Force fresh guest state
+    header("Location: index.php");
+    exit();
+}
+
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/student_page_transition.php';
 

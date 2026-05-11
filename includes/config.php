@@ -412,8 +412,8 @@ CSS;
 /**
  * Supabase URL and API key loaded from .env file.
  */
-const SUPABASE_URL = '';
-const SUPABASE_KEY = '';
+const SUPABASE_URL = 'https://vjrqwscqglqllbylzjgh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqcnF3c2NxZ2xxbGxieWx6amdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMzM1NjgsImV4cCI6MjA5MzcwOTU2OH0.d4MYlu1by9W6d8IfQqOz_quMffZ_5gZIvox3p89Uie4';
 
 /**
  * Perform REST requests to Supabase using cURL only.

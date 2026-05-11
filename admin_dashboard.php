@@ -136,6 +136,7 @@ $newsRows = fetchLatestNews(20);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - PPDB Oldschool</title>
     <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
@@ -316,6 +317,37 @@ $newsRows = fetchLatestNews(20);
             setTimeout(function() {
                 document.getElementById('ua-page-transition').classList.add('is-loaded');
             }, 50);
+            
+            // Initialize Supabase client
+            const supabaseUrl = '<?= SUPABASE_URL ?>';
+            const supabaseAnonKey = '<?= SUPABASE_KEY ?>';
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+            
+            console.log('Listening for new registrants...');
+            
+            // Subscribe to INSERT events on pendaftar table
+            const channel = supabase
+                .channel('public:pendaftar')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'pendaftar'
+                    },
+                    (payload) => {
+                        console.log('New registration detected:', payload);
+                        // Immediately reload the page to show new data
+                        window.location.reload();
+                    }
+                )
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log('Successfully subscribed to pendaftar table changes');
+                    } else if (status === 'CHANNEL_ERROR') {
+                        console.error('Failed to subscribe to pendaftar table');
+                    }
+                });
         });
     </script>
 </body>
